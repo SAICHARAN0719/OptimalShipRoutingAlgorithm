@@ -1,0 +1,102 @@
+
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>ML Ocean Route Visualization</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+        <style>
+            body { margin: 0; padding: 0; }
+            #map { width: 100%; height: 100vh; }
+            .info { padding: 6px 8px; background: white; box-shadow: 0 0 15px rgba(0,0,0,0.2); 
+                   border-radius: 5px; max-width: 300px; max-height: 400px; overflow-y: auto; }
+            .route-card { margin-bottom: 10px; padding: 5px; border-radius: 4px; }
+            .route-title { font-weight: bold; margin-bottom: 4px; }
+            .route-metric { font-size: 0.9em; margin: 2px 0; }
+        </style>
+    </head>
+    <body>
+        <div id="map"></div>
+        
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        <script>
+            // Initialize map
+            var map = L.map('map');
+            
+            // Add OpenStreetMap tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            // Route data
+            var routes = [{"start": {"lat": 8.37, "lon": 76.99}, "end": {"lat": 6.94, "lon": 79.84}, "total_distance_km": 379.84520000000003, "total_time_hours": 10.3, "total_fuel_units": 20.5, "safety_score": 95.0, "route_type": "Optimal", "color": "#3388FF", "steps": 0, "points": []}, {"start": {"lat": 8.37, "lon": 76.99}, "end": {"lat": 6.94, "lon": 79.84}, "total_distance_km": 379.84520000000003, "total_time_hours": 10.3, "total_fuel_units": 20.5, "safety_score": 93.75, "route_type": "Fast", "color": "#F44336", "steps": 0, "points": []}, {"start": {"lat": 8.37, "lon": 76.99}, "end": {"lat": 6.94, "lon": 79.84}, "total_distance_km": 379.84520000000003, "total_time_hours": 10.3, "total_fuel_units": 20.5, "safety_score": 95.0, "route_type": "Eco-Friendly", "color": "#4CAF50", "steps": 0, "points": []}, {"start": {"lat": 8.37, "lon": 76.99}, "end": {"lat": 6.94, "lon": 79.84}, "total_distance_km": 379.84520000000003, "total_time_hours": 10.3, "total_fuel_units": 20.5, "safety_score": 97.5, "route_type": "Safest", "color": "#2196F3", "steps": 0, "points": []}]
+            ;
+            
+            // Create info panel
+            var info = L.control();
+            
+            info.onAdd = function(map) {
+                this._div = L.DomUtil.create('div', 'info');
+                this.update();
+                return this._div;
+            };
+            
+            info.update = function() {
+                var html = '<h4>ML Ocean Routing Demo</h4>';
+                html += '<div id="route-list">';
+                routes.forEach(function(route, i) {
+                    var style = 'border-left: 4px solid ' + route.color + ';';
+                    html += '<div class="route-card" style="' + style + '">';
+                    html += '<div class="route-title">' + route.route_type + '</div>';
+                    html += '<div class="route-metric">Distance: ' + route.total_distance_km.toFixed(1) + ' km</div>';
+                    html += '<div class="route-metric">Time: ' + route.total_time_hours.toFixed(1) + ' hours</div>';
+                    html += '<div class="route-metric">Safety: ' + route.safety_score.toFixed(1) + '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+                this._div.innerHTML = html;
+            };
+            
+            info.addTo(map);
+            
+            // Create route layers
+            var routeLayers = [];
+            var bounds = L.latLngBounds();
+            
+            routes.forEach(function(route) {
+                // Extract points for the route
+                var points = route.points.map(function(p) {
+                    return [p.lat, p.lon];
+                });
+                
+                // Extend map bounds
+                points.forEach(function(p) {
+                    bounds.extend(p);
+                });
+                
+                // Create polyline for route
+                var routeLine = L.polyline(points, {
+                    color: route.color,
+                    weight: 4,
+                    opacity: 0.7
+                }).addTo(map);
+                
+                // Add popup with route info
+                routeLine.bindPopup(
+                    '<b>' + route.route_type + '</b><br>' +
+                    'Distance: ' + route.total_distance_km.toFixed(1) + ' km<br>' +
+                    'Time: ' + route.total_time_hours.toFixed(1) + ' hours<br>' +
+                    'Fuel: ' + route.total_fuel_units.toFixed(1) + ' units<br>' +
+                    'Safety: ' + route.safety_score.toFixed(1)
+                );
+                
+                routeLayers.push(routeLine);
+            });
+            
+            // Fit map to bounds of all routes
+            map.fitBounds(bounds);
+        </script>
+    </body>
+    </html>
+    

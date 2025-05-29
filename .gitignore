@@ -1,0 +1,13 @@
+# Ignore data files
+data/raw/
+data/processed/
+data/outputs/
+
+# Ignore Python cache and virtual environments
+__pycache__/
+venv/
+.env
+
+# Ignore IDE files
+.idea/
+.vscode/

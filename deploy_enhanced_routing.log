@@ -1,0 +1,11 @@
+2025-03-17 13:51:23,707 - __main__ - INFO - Deploying enhanced routing system in standalone mode
+2025-03-17 13:51:25,663 - routing_integration - INFO - Using TerrainRecognition from dynamic_routing
+2025-03-17 13:51:25,663 - api_integration - INFO - Routing integration initialized successfully
+2025-03-17 13:51:25,665 - api_integration - INFO - Enhanced routing API endpoints registered successfully
+2025-03-17 13:51:25,665 - __main__ - INFO - Created standalone Flask application
+2025-03-17 13:51:25,667 - __main__ - INFO - Added test page at /test-routing
+2025-03-17 13:51:25,667 - __main__ - INFO - Starting server on port 8080 (debug=True)
+2025-03-17 13:51:25,684 - werkzeug - WARNING -  * Debugger is active!
+2025-03-17 13:51:25,690 - werkzeug - INFO -  * Debugger PIN: 857-265-910
+2025-03-17 13:57:14,007 - werkzeug - INFO - 127.0.0.1 - - [17/Mar/2025 13:57:14] "GET / HTTP/1.1" 200 -
+2025-03-17 13:57:14,259 - werkzeug - INFO - 127.0.0.1 - - [17/Mar/2025 13:57:14] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimal Ship Routing Simulation - Preview</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* Main Layout */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container-fluid, .row {
+            height: 100%;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background-color: #f8f9fa;
+            height: 100vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar-header {
+            padding-bottom: 20px;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h3 {
+            margin-bottom: 5px;
+            color: #0d6efd;
+        }
+        
+        .sidebar-content {
+            padding-bottom: 20px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 0;
+        }
+        
+        .map-container {
+            flex-grow: 1;
+            position: relative;
+            background-color: #e9ecef;
+        }
+        
+        #map {
+            height: 100%;
+            width: 100%;
+            background-image: url('https://maps.googleapis.com/maps/api/staticmap?center=12.9716,77.5946&zoom=8&size=800x600&path=color:0x0000ff|weight:5|12.9716,77.5946|12.9716,77.8946|13.0716,78.1946|13.0716,78.4946|13.0716,78.7946|13.0716,79.0946|13.0716,79.3946|13.0716,79.6946|13.0716,79.9946|13.0716,80.2707&markers=color:green|label:S|12.9716,77.5946&markers=color:red|label:E|13.0716,80.2707&key=AIzaSyBu9NyA_YzMuloPiJahAGLx5Y7Gs0KAsE4');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        /* Simulation Controls */
+        .simulation-controls {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .simulation-info {
+            margin-top: 15px;
+        }
+        
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .info-label {
+            display: block;
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+        
+        .info-value {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #212529;
+        }
+        
+        /* Route Comparison */
+        .route-option {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+            border-left-width: 5px;
+        }
+        
+        .route-option.selected {
+            border: 2px solid #0d6efd;
+            background-color: rgba(13, 110, 253, 0.1);
+        }
+        
+        .route-option-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .route-option-name {
+            font-weight: bold;
+        }
+        
+        .route-option-metrics {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .route-metric {
+            flex: 1 0 50%;
+            font-size: 0.85rem;
+            margin-bottom: 3px;
+        }
+        
+        .route-metric-label {
+            color: #6c757d;
+        }
+        
+        .route-metric-value {
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar">
+                <div class="sidebar-header">
+                    <h3>Optimal Ship Routing</h3>
+                    <p>Real-time simulation dashboard</p>
+                </div>
+                
+                <div class="sidebar-content">
+                    <form id="routeForm">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5>Route Parameters</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="startPoint" class="form-label">Start Point</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="startLat" placeholder="Latitude" step="0.0001" value="12.9716" required>
+                                        <input type="number" class="form-control" id="startLon" placeholder="Longitude" step="0.0001" value="77.5946" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="endPoint" class="form-label">End Point</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="endLat" placeholder="Latitude" step="0.0001" value="13.0827" required>
+                                        <input type="number" class="form-control" id="endLon" placeholder="Longitude" step="0.0001" value="80.2707" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="departureTime" class="form-label">Departure Time</label>
+                                    <input type="datetime-local" class="form-control" id="departureTime" value="2023-11-22T10:00" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5>Ship Parameters</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="shipType" class="form-label">Ship Type</label>
+                                    <select class="form-select" id="shipType">
+                                        <option value="cargo" selected>Cargo Ship</option>
+                                        <option value="tanker">Tanker</option>
+                                        <option value="container">Container Ship</option>
+                                        <option value="passenger">Passenger Ship</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="maxSpeed" class="form-label">Max Speed (knots)</label>
+                                    <input type="number" class="form-control" id="maxSpeed" min="1" max="50" value="20">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="fuelCapacity" class="form-label">Fuel Capacity (tons)</label>
+                                    <input type="number" class="form-control" id="fuelCapacity" min="100" max="5000" value="2000">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="fuelConsumptionRate" class="form-label">Fuel Consumption Rate (tons/100nm)</label>
+                                    <input type="number" class="form-control" id="fuelConsumptionRate" min="1" max="50" value="8">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="button" class="btn btn-primary" id="calculateRouteBtn" disabled>Calculate Routes (Done)</button>
+                        </div>
+                    </form>
+                    
+                    <div class="card mt-3" id="routeComparisonCard">
+                        <div class="card-header">
+                            <h5>Route Comparison</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="routeComparison">
+                                <div class="route-option selected" style="border-left-color: #3388ff;">
+                                    <div class="route-option-header">
+                                        <span class="route-option-name">Balanced Route</span>
+                                        <button class="btn btn-sm btn-primary" id="select-route-0">Selected</button>
+                                    </div>
+                                    <div class="route-option-metrics">
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Distance:</span>
+                                            <span class="route-metric-value">159.11 nm</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Travel Time:</span>
+                                            <span class="route-metric-value">8.28 hours</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Fuel:</span>
+                                            <span class="route-metric-value">66.23 tons</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Safety Score:</span>
+                                            <span class="route-metric-value">92.5/100</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="route-option" style="border-left-color: #33a02c;">
+                                    <div class="route-option-header">
+                                        <span class="route-option-name">Safety Priority</span>
+                                        <button class="btn btn-sm btn-outline-primary" id="select-route-1">Select</button>
+                                    </div>
+                                    <div class="route-option-metrics">
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Distance:</span>
+                                            <span class="route-metric-value">167.45 nm</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Travel Time:</span>
+                                            <span class="route-metric-value">8.96 hours</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Fuel:</span>
+                                            <span class="route-metric-value">71.82 tons</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Safety Score:</span>
+                                            <span class="route-metric-value">98.2/100</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="route-option" style="border-left-color: #ff7f00;">
+                                    <div class="route-option-header">
+                                        <span class="route-option-name">Fuel Efficient</span>
+                                        <button class="btn btn-sm btn-outline-primary" id="select-route-2">Select</button>
+                                    </div>
+                                    <div class="route-option-metrics">
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Distance:</span>
+                                            <span class="route-metric-value">155.38 nm</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Travel Time:</span>
+                                            <span class="route-metric-value">8.64 hours</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Fuel:</span>
+                                            <span class="route-metric-value">62.15 tons</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Safety Score:</span>
+                                            <span class="route-metric-value">88.7/100</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="route-option" style="border-left-color: #e31a1c;">
+                                    <div class="route-option-header">
+                                        <span class="route-option-name">Fastest Route</span>
+                                        <button class="btn btn-sm btn-outline-primary" id="select-route-3">Select</button>
+                                    </div>
+                                    <div class="route-option-metrics">
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Distance:</span>
+                                            <span class="route-metric-value">152.77 nm</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Travel Time:</span>
+                                            <span class="route-metric-value">7.89 hours</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Fuel:</span>
+                                            <span class="route-metric-value">69.92 tons</span>
+                                        </div>
+                                        <div class="route-metric">
+                                            <span class="route-metric-label">Safety Score:</span>
+                                            <span class="route-metric-value">85.3/100</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-9 main-content">
+                <div class="map-container">
+                    <div id="map"></div>
+                </div>
+                
+                <div class="simulation-controls">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5>Simulation Controls</h5>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" id="startSimulationBtn">
+                                        <i class="fas fa-play"></i> Start
+                                    </button>
+                                    <button class="btn btn-secondary" id="pauseSimulationBtn" disabled>
+                                        <i class="fas fa-pause"></i> Pause
+                                    </button>
+                                    <button class="btn btn-danger" id="stopSimulationBtn" disabled>
+                                        <i class="fas fa-stop"></i> Stop
+                                    </button>
+                                </div>
+                                
+                                <div class="simulation-speed">
+                                    <label for="simulationSpeed" class="form-label">Simulation Speed</label>
+                                    <select class="form-select" id="simulationSpeed">
+                                        <option value="1">1x</option>
+                                        <option value="5">5x</option>
+                                        <option value="10" selected>10x</option>
+                                        <option value="50">50x</option>
+                                        <option value="100">100x</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="progress mt-3">
+                                <div class="progress-bar" role="progressbar" id="simulationProgress" style="width: 0%"></div>
+                            </div>
+                            
+                            <div class="simulation-info mt-3">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="info-box">
+                                            <span class="info-label">Distance</span>
+                                            <span class="info-value" id="currentDistance">0.0 nm</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="info-box">
+                                            <span class="info-label">Time</span>
+                                            <span class="info-value" id="currentTime">0h 0m</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="info-box">
+                                            <span class="info-label">Fuel Used</span>
+                                            <span class="info-value" id="currentFuel">0.0 tons</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="info-box">
+                                            <span class="info-label">ETA</span>
+                                            <span class="info-value" id="eta">18:28</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
